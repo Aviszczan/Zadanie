@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # 1. Kontener bazy danych PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: django_db
+      POSTGRES_USER: django_user
+      POSTGRES_PASSWORD: secret_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Brak sekcji 'ports' - baza NIE jest eksponowana na zewnątrz komputera, 
+    # dostęp do niej ma tylko kontener Django w sieci db_net.
+    networks:
+      - db_net
+    restart: always
+
+  # 2. Kontener aplikacji Django
+  web:
+    build: .
+    container_name: django_web_app
+    env_file:
+      - .env
+    # Odpalamy serwer Django na porcie 8000
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=django_db
+      - DB_USER=django_user
+      - DB_PASSWORD=secret_password
+      - DB_PORT=5432
+    # Django ma dostęp do bazy (db_net) oraz do pgadmina (admin_net)
+    networks:
+      - db_net
+      - admin_net
+    depends_on:
+      - db
+
+  # 3. Kontener pgAdmin (zarządzanie bazą w przeglądarce)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin_password
+    ports:
+      - "8080:80"
+    # pgadmin widzi tylko kontener Django, nie ma bezpośredniego dostępu do czystej bazy
+    networks:
+      - admin_net
+    restart: always
+
+# Definicje odseparowanych sieci dockerowych i wolumenu dla bazy
+networks:
+  db_net:
+    driver: bridge
+  admin_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
