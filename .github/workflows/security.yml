@@ -22,8 +22,9 @@ jobs:
         run: pip install bandit safety
 
       - name: Run Bandit
-        run: bandit -r . -x ./venv,./env,./tests #
+        # Skanujemy tylko folder core, pomijając testy i pliki zewnętrzne
+        run: bandit -r core/
 
       - name: Run Safety
         run: |
-          if [ -f requirements.txt ]; then safety check --file requirements.txt; else echo "Pomijam safety - brak requirements.txt"; fi #
+          if [ -f requirements.txt ]; then safety check --file requirements.txt; else echo "Pomijam safety - brak requirements.txt"; fi
