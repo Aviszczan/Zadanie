@@ -1,0 +1,36 @@
+name: Linting
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest #
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12' #
+
+      - name: Install Linting Tools
+        run: pip install flake8 black isort
+
+      - name: Run flake8
+        # Sprawdza zgodność z PEP8, ignorując automatyczne pliki Django [cite: 38]
+        run: flake8 . --exclude=venv,migrations,env --max-line-length=120
+
+      - name: Run black check
+        run: black --check . --exclude="(venv|migrations|env)" #
+
+      - name: Run isort check
+        run: isort --check-only . --skip=venv --skip=migrations --skip=env #
