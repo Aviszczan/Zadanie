@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest #
+    [cite_start]runs-on: ubuntu-latest # [cite: 14]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,17 +20,16 @@ jobs:
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12' #
+          [cite_start]python-version: '3.12' # [cite: 15]
 
       - name: Install Linting Tools
         run: pip install flake8 black isort
 
       - name: Run flake8
-        # Sprawdza zgodność z PEP8, ignorując automatyczne pliki Django [cite: 38]
-        run: flake8 . --exclude=venv,migrations,env --max-line-length=120
+        run: flake8 core/ manage.py --max-line-length=120
 
       - name: Run black check
-        run: black --check . --exclude="(venv|migrations|env)" #
+        run: black --check core/ manage.py
 
       - name: Run isort check
-        run: isort --check-only . --skip=venv --skip=migrations --skip=env #
+        run: isort --check-only core/ manage.py
